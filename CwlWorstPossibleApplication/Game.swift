@@ -39,14 +39,14 @@ struct Square: Codable {
 
 class Game: Codable {
 	static let changed = Notification.Name("gameChanged")
-	static let squareKey = Notification.Name("squareValue")
+	static let squareKey = "square"
 	
 	static let gameWidth: Int = 10
 	static let gameHeight: Int = 10
 	static let initialMineCount: Int = 15
 	
 	private(set) var squares: Array<Square>
-	var nonMineSquaresRemaining: Int
+	private(set) var nonMineSquaresRemaining: Int
 	
 	init() {
 		let totalSquares = Game.gameWidth * Game.gameHeight
