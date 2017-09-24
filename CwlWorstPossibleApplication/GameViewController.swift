@@ -83,7 +83,7 @@ class GameViewController: UIViewController {
 	
 	override func decodeRestorableState(with coder: NSCoder) {
 		super.decodeRestorableState(with: coder)
-		if coder.containsValue(forKey: String.remainingKey) {
+		if coder.containsValue(forKey: String.flagModeKey) {
 			flagMode?.isOn = coder.decodeBool(forKey: String.flagModeKey)
 		}
 		
