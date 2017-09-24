@@ -12,7 +12,7 @@
         <!--Game View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController restorationIdentifier="gameView" id="BYZ-38-t0r" customClass="GameViewController" customModule="CwlWorstPossibleApplication" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController restorationIdentifier="gameView" id="BYZ-38-t0r" customClass="GameViewController" customModule="Mines" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -54,6 +54,7 @@
                                     </label>
                                     <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" highlighted="YES" selected="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="Zz5-40-NVo">
                                         <rect key="frame" x="93" y="0.0" width="51" height="31"/>
+                                        <color key="tintColor" red="0.79886788129999997" green="0.67701053619999996" blue="0.60081201790000005" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <color key="onTintColor" red="0.42525335819444443" green="0.30004216608107792" blue="0.24953580870845418" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     </switch>
                                 </subviews>

@@ -5,6 +5,17 @@
 //  Created by Matt Gallagher on 2017/09/01.
 //  Copyright © 2017 Matt Gallagher. All rights reserved.
 //
+//  Permission to use, copy, modify, and/or distribute this software for any purpose with or without
+//  fee is hereby granted, provided that the above copyright notice and this permission notice
+//  appear in all copies.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
+//  SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+//  AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+//  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+//  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+//  OF THIS SOFTWARE.
+//
 
 import UIKit
 import GameKit
@@ -29,6 +40,10 @@ class GameViewController: UIViewController {
 		}
 	} }
 	
+	@IBAction func startNewGame() {
+		loadGame(newSquares: newMineField(mineCount: GameViewController.initialMineCount), remaining: GameViewController.gameWidth * GameViewController.gameHeight - GameViewController.initialMineCount)
+	}
+	
 	func loadGame(newSquares: Array<SquareView>, remaining: Int) {
 		squares.forEach { $0.removeFromSuperview() }
 		squares = newSquares
@@ -39,10 +54,64 @@ class GameViewController: UIViewController {
 		}
 	}
 	
-	@IBAction func startNewGame() {
-		loadGame(newSquares: newMineField(mineCount: GameViewController.initialMineCount), remaining: GameViewController.gameWidth * GameViewController.gameHeight - GameViewController.initialMineCount)
+	func newMineField(mineCount: Int) -> Array<SquareView> {
+		let random = GKRandomDistribution(randomSource: GKRandomSource(), lowestValue: 0, highestValue: GameViewController.gameWidth * GameViewController.gameHeight - 1)
+		var squares = Array<SquareView>()
+		for l in 0..<(GameViewController.gameWidth * GameViewController.gameHeight) {
+			squares.append(SquareView(location: l))
+		}
+		
+		for _ in 1...mineCount {
+			var n = 0
+			repeat {
+				n = random.nextInt()
+			} while squares[n].isMine
+			squares[n].isMine = true
+			iterateAdjacent(squares: &squares, index: n) { (ss: inout Array<SquareView>, index: Int) in
+				if !ss[index].isMine {
+					ss[index].adjacent += 1
+				}
+			}
+		}
+		return squares
 	}
 	
+	func uncover(squares: inout Array<SquareView>, index: Int) -> Int {
+		guard squares[index].covering == .covered else { return 0 }
+		
+		squares[index].covering = .uncovered
+		
+		if squares[index].adjacent == 0 {
+			var cleared = 1
+			iterateAdjacent(squares: &squares, index: index) { (ss: inout Array<SquareView>, i: Int) in
+				cleared += uncover(squares: &ss, index: i)
+			}
+			return cleared
+		} else {
+			return 1
+		}
+	}
+	
+	func iterateAdjacent(squares: inout Array<SquareView>, index n: Int, process: (inout Array<SquareView>, Int) -> ()) {
+		let isOnLeftEdge = n % GameViewController.gameWidth == 0
+		let isOnRightEdge = n % GameViewController.gameWidth == GameViewController.gameHeight - 1
+		
+		if n >= GameViewController.gameWidth {
+			if !isOnLeftEdge { process(&squares, n - GameViewController.gameWidth - 1) }
+			process(&squares, n - GameViewController.gameWidth)
+			if !isOnRightEdge { process(&squares, n - GameViewController.gameWidth + 1) }
+		}
+		
+		if !isOnLeftEdge { process(&squares, n - 1) }
+		if !isOnRightEdge { process(&squares, n + 1) }
+		
+		if n < GameViewController.gameWidth * (GameViewController.gameHeight - 1) {
+			if !isOnLeftEdge { process(&squares, n + GameViewController.gameWidth - 1) }
+			process(&squares, n + GameViewController.gameWidth)
+			if !isOnRightEdge { process(&squares, n + GameViewController.gameWidth + 1) }
+		}
+	}
+
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		newGameButton?.layer.cornerRadius = 8
@@ -109,62 +178,4 @@ fileprivate extension String {
 	static let squaresKey = "squares"
 	static let remainingKey = "remaining"
 	static let flagModeKey = "flagMode"
-}
-
-func newMineField(mineCount: Int) -> Array<SquareView> {
-	let random = GKRandomDistribution(randomSource: GKRandomSource(), lowestValue: 0, highestValue: GameViewController.gameWidth * GameViewController.gameHeight - 1)
-	var squares = Array<SquareView>()
-	for l in 0..<(GameViewController.gameWidth * GameViewController.gameHeight) {
-		squares.append(SquareView(location: l))
-	}
-	
-	for _ in 1...mineCount {
-		var n = 0
-		repeat {
-			n = random.nextInt()
-		} while squares[n].isMine
-		squares[n].isMine = true
-		iterateAdjacent(squares: &squares, index: n) { (ss: inout Array<SquareView>, index: Int) in
-			if !ss[index].isMine {
-				ss[index].adjacent += 1
-			}
-		}
-	}
-	return squares
-}
-
-func uncover(squares: inout Array<SquareView>, index: Int) -> Int {
-	guard squares[index].covering == .covered else { return 0 }
-	
-	squares[index].covering = .uncovered
-	
-	if squares[index].adjacent == 0 {
-		var cleared = 1
-		iterateAdjacent(squares: &squares, index: index) { (ss: inout Array<SquareView>, i: Int) in
-			cleared += uncover(squares: &ss, index: i)
-		}
-		return cleared
-	} else {
-		return 1
-	}
-}
-
-func iterateAdjacent(squares: inout Array<SquareView>, index n: Int, process: (inout Array<SquareView>, Int) -> ()) {
-	let isOnLeftEdge = n % GameViewController.gameWidth == 0
-	let isOnRightEdge = n % GameViewController.gameWidth == GameViewController.gameHeight - 1
-	
-	if n >= GameViewController.gameWidth {
-		if !isOnLeftEdge { process(&squares, n - GameViewController.gameWidth - 1) }
-		process(&squares, n - GameViewController.gameWidth)
-		if !isOnRightEdge { process(&squares, n - GameViewController.gameWidth + 1) }
-	}
-	
-	if !isOnLeftEdge { process(&squares, n - 1) }
-	if !isOnRightEdge { process(&squares, n + 1) }
-	
-	if n < GameViewController.gameWidth * (GameViewController.gameHeight - 1) {
-		if !isOnLeftEdge { process(&squares, n + GameViewController.gameWidth - 1) }
-		process(&squares, n + GameViewController.gameWidth)
-		if !isOnRightEdge { process(&squares, n + GameViewController.gameWidth + 1) }
-	}
 }
