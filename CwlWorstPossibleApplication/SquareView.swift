@@ -12,30 +12,33 @@ class SquareView: UIButton {
 	static let font = UIFont.systemFont(ofSize: 18)
 	static let squareSize: CGFloat = 30
 	static let textPadding: CGFloat = 2
+	static let paragraphStyle: NSParagraphStyle = {
+		let alignCenter = NSMutableParagraphStyle()
+		alignCenter.alignment = .center
+		alignCenter.minimumLineHeight = SquareView.squareSize - 2 * SquareView.textPadding
+		return alignCenter
+	}()
 	
-	var square: Square
-	
+	var square: Square { didSet { setNeedsDisplay() } }
 	init(square: Square) {
 		self.square = square
 		super.init(frame: CGRect(x: 0, y: 0, width: SquareView.squareSize, height: SquareView.squareSize))
 	}
-	
 	required init(coder: NSCoder) { fatalError() }
 	
 	override func draw(_ rect: CGRect) {
 		let path = UIBezierPath(rect: rect)
-		if square.covering == .uncovered {
-			UIColor(red: 0.8, green: 0.68, blue: 0.6, alpha: 1).set()
-		} else {
+		if square.covering != .uncovered {
 			UIColor(red: 0.472, green: 0.333, blue: 0.277, alpha: 1).set()
+		} else {
+			UIColor(red: 0.8, green: 0.68, blue: 0.6, alpha: 1).set()
 		}
 		path.fill()
 		
-		let alignCenter = NSMutableParagraphStyle()
-		alignCenter.alignment = .center
-		alignCenter.minimumLineHeight = SquareView.squareSize - 2 * SquareView.textPadding
 		let string: String
-		if square.covering == .flagged {
+		if square.covering == .covered {
+			return
+		} else if square.covering == .flagged {
 			string = "⚑"
 		} else if square.isMine {
 			string = "💣"
@@ -44,7 +47,7 @@ class SquareView: UIButton {
 		} else {
 			return
 		}
-		NSAttributedString(string: string, attributes: [.paragraphStyle: alignCenter, .font: SquareView.font]).draw(in: rect)
+		NSAttributedString(string: string, attributes: [.paragraphStyle: SquareView.paragraphStyle, .font: SquareView.font]).draw(in: rect)
 	}
 }
 

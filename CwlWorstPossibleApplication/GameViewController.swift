@@ -14,18 +14,26 @@ class GameViewController: UIViewController {
 	@IBOutlet var newGameButton: UIButton?
 	
 	var game = Game() { didSet {
-		NotificationCenter.default.removeObserver(self, name: Game.changed, object: oldValue)
-		NotificationCenter.default.addObserver(self, selector: #selector(gameChanged(_:)), name: Game.changed, object: game)
-		NotificationCenter.default.post(name: Game.changed, object: game)
+		updateObserving(oldGame: oldValue, newGame: game)
 	} }
 	
 	var squareViews: Array<SquareView> = []
 	
+	func updateObserving(oldGame: Game?, newGame: Game) {
+		if let old = oldGame {
+			NotificationCenter.default.removeObserver(self, name: Game.changed, object: old)
+		}
+		NotificationCenter.default.addObserver(self, selector: #selector(gameChanged(_:)), name: Game.changed, object: newGame)
+		NotificationCenter.default.post(name: Game.changed, object: newGame)
+	}
+	
 	@objc func gameChanged(_ notification: Notification) {
-		if let userInfo = notification.userInfo, let changedSquare = userInfo[Game.squareIndexKey] as? Int {
-			squareViews[changedSquare].setNeedsDisplay()
+		if let userInfo = notification.userInfo, let newSquare = userInfo[Game.squareKey] as? Square {
+			squareViews[newSquare.location].square = newSquare
 		} else {
-			squareViews.forEach { $0.setNeedsDisplay() }
+			for s in game.squares {
+				squareViews[s.location].square = s
+			}
 		}
 
 		if game.nonMineSquaresRemaining == -1 {
@@ -41,6 +49,12 @@ class GameViewController: UIViewController {
 		game = Game()
 	}
 	
+	@objc func squareTapped(_ sender: Any?) {
+		guard let s = sender as? SquareView else { return }
+		game.tapSquare(index: s.square.location, flagMode: flagMode?.isOn ?? false)
+	}
+	
+	
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		newGameButton?.layer.cornerRadius = 8
@@ -52,11 +66,8 @@ class GameViewController: UIViewController {
 			self.view.addSubview(sv)
 			sv.addTarget(self, action: #selector(squareTapped(_:)), for: .primaryActionTriggered)
 		}
-	}
-	
-	@objc func squareTapped(_ sender: Any?) {
-		guard let s = sender as? SquareView else { return }
-		game.tapSquare(index: s.square.location, flagMode: flagMode?.isOn ?? false)
+		
+		updateObserving(oldGame: nil, newGame: game)
 	}
 	
 	override func viewDidLayoutSubviews() {
@@ -69,35 +80,36 @@ class GameViewController: UIViewController {
 			let x = sv.square.location % Game.gameWidth
 			let y = sv.square.location / Game.gameWidth
 
-			sv.frame.origin = CGPoint(x: 0.5 * (availableWidth - usedWidth) + CGFloat(x) * CGFloat(SquareView.squareSize + 2) + 1, y: 0.5 * (availableHeight - usedHeight) + CGFloat(y) * CGFloat(SquareView.squareSize + 2) + 1)
+			let size = CGFloat(SquareView.squareSize + 2)
+			let xCoord = 0.5 * (availableWidth - usedWidth) + CGFloat(x) * size + 1
+			let yCoord = 0.5 * (availableHeight - usedHeight) + CGFloat(y) * size + 1
+			sv.frame.origin = CGPoint(x: xCoord, y: yCoord)
 		}
 	}
 	
 	override func decodeRestorableState(with coder: NSCoder) {
 		super.decodeRestorableState(with: coder)
-		if coder.containsValue(forKey: String.remainingKey) {
+		
+		if coder.containsValue(forKey: String.flagModeKey) {
 			flagMode?.isOn = coder.decodeBool(forKey: String.flagModeKey)
 		}
 		
-		if let squaresArray = coder.decodeObject(forKey: String.squaresKey) as? Array<Dictionary<String, Any>>, coder.containsValue(forKey: String.remainingKey) {
-			do {
-				let newSquares = try squaresArray.map { try SquareView(fromDictionary: $0) }
-				loadGame(newSquares: newSquares, remaining: coder.decodeInteger(forKey: String.remainingKey))
-			} catch {
-				startNewGame()
-			}
+		if let data = coder.decodeObject(forKey: String.gameKey) as? Data, let restored = try? JSONDecoder().decode(Game.self, from: data) {
+			game = restored
 		}
 	}
 	
 	override func encodeRestorableState(with coder: NSCoder) {
 		super.encodeRestorableState(with: coder)
-		coder.encode(squares.map { $0.toDictionary() } as Array<Dictionary<String, Any>>, forKey: String.squaresKey)
-		coder.encode(nonMineSquaresRemaining as Int, forKey: String.remainingKey)
 		coder.encode((flagMode?.isOn == true) as Bool, forKey: String.flagModeKey)
+		if let data = try? JSONEncoder().encode(game) {
+			_ = coder.encode(data, forKey: String.gameKey)
+		}
 	}
 }
 
 fileprivate extension String {
 	static let flagModeKey = "flagMode"
+	static let gameKey = "game"
 }
 

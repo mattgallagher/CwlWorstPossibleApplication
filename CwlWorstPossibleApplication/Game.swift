@@ -28,13 +28,13 @@ struct Square: Codable {
 
 class Game: Codable {
 	static let changed = Notification.Name("gameChanged")
-	static let squareIndexKey = Notification.Name("squareIndex")
+	static let squareKey = Notification.Name("squareValue")
 	
 	static let gameWidth: Int = 10
 	static let gameHeight: Int = 10
 	static let initialMineCount: Int = 15
 	
-	var squares: Array<Square>
+	private(set) var squares: Array<Square>
 	var nonMineSquaresRemaining: Int
 	
 	init() {
@@ -61,11 +61,16 @@ class Game: Codable {
 		}
 	}
 	
+	private func notifySquareChanged(_ square: Square) {
+		NotificationCenter.default.post(name: Game.changed, object: self, userInfo: [Game.squareKey: square])
+	}
+	
 	func tapSquare(index: Int, flagMode: Bool) {
 		guard nonMineSquaresRemaining > 0 else { return }
 		
 		if flagMode, squares[index].covering != .uncovered {
 			squares[index].covering = squares[index].covering == .covered ? .flagged : .covered
+			notifySquareChanged(squares[index])
 			return
 		} else if squares[index].covering == .flagged {
 			return
@@ -74,45 +79,44 @@ class Game: Codable {
 		if squares[index].isMine {
 			squares[index].covering = .uncovered
 			nonMineSquaresRemaining = -1
+			notifySquareChanged(squares[index])
 			return
 		}
 		
-		nonMineSquaresRemaining -= uncover(squares: &squares, index: squares[index].location)
+		uncover(squares: &squares, index: squares[index].location)
 	}
-}
 
-func uncover(squares: inout Array<Square>, index: Int) -> Int {
-	guard squares[index].covering == .covered else { return 0 }
-	
-	squares[index].covering = .uncovered
-	
-	if squares[index].adjacent == 0 {
-		var cleared = 1
-		iterateAdjacent(squares: &squares, index: index) { (ss: inout Array<Square>, i: Int) in
-			cleared += uncover(squares: &ss, index: i)
+	private func uncover(squares: inout Array<Square>, index: Int) {
+		guard squares[index].covering == .covered else { return }
+		
+		squares[index].covering = .uncovered
+		nonMineSquaresRemaining -= 1
+		notifySquareChanged(squares[index])
+		
+		if squares[index].adjacent == 0 {
+			iterateAdjacent(squares: &squares, index: index) { (ss: inout Array<Square>, i: Int) in
+				uncover(squares: &ss, index: i)
+			}
 		}
-		return cleared
-	} else {
-		return 1
-	}
-}
-
-func iterateAdjacent(squares: inout Array<Square>, index n: Int, process: (inout Array<Square>, Int) -> ()) {
-	let isOnLeftEdge = n % Game.gameWidth == 0
-	let isOnRightEdge = n % Game.gameWidth == Game.gameHeight - 1
-	
-	if n >= Game.gameWidth {
-		if !isOnLeftEdge { process(&squares, n - Game.gameWidth - 1) }
-		process(&squares, n - Game.gameWidth)
-		if !isOnRightEdge { process(&squares, n - Game.gameWidth + 1) }
 	}
 	
-	if !isOnLeftEdge { process(&squares, n - 1) }
-	if !isOnRightEdge { process(&squares, n + 1) }
-	
-	if n < Game.gameWidth * (Game.gameHeight - 1) {
-		if !isOnLeftEdge { process(&squares, n + Game.gameWidth - 1) }
-		process(&squares, n + Game.gameWidth)
-		if !isOnRightEdge { process(&squares, n + Game.gameWidth + 1) }
+	private func iterateAdjacent(squares: inout Array<Square>, index n: Int, process: (inout Array<Square>, Int) -> ()) {
+		let isOnLeftEdge = n % Game.gameWidth == 0
+		let isOnRightEdge = n % Game.gameWidth == Game.gameHeight - 1
+		
+		if n >= Game.gameWidth {
+			if !isOnLeftEdge { process(&squares, n - Game.gameWidth - 1) }
+			process(&squares, n - Game.gameWidth)
+			if !isOnRightEdge { process(&squares, n - Game.gameWidth + 1) }
+		}
+		
+		if !isOnLeftEdge { process(&squares, n - 1) }
+		if !isOnRightEdge { process(&squares, n + 1) }
+		
+		if n < Game.gameWidth * (Game.gameHeight - 1) {
+			if !isOnLeftEdge { process(&squares, n + Game.gameWidth - 1) }
+			process(&squares, n + Game.gameWidth)
+			if !isOnRightEdge { process(&squares, n + Game.gameWidth + 1) }
+		}
 	}
 }
