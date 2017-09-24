@@ -54,10 +54,11 @@
                                     </label>
                                     <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" highlighted="YES" selected="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="Zz5-40-NVo">
                                         <rect key="frame" x="93" y="0.0" width="51" height="31"/>
+                                        <color key="tintColor" red="0.79886788129806519" green="0.67701053619384766" blue="0.60081201791763306" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                         <color key="onTintColor" red="0.42525335819444443" green="0.30004216608107792" blue="0.24953580870845418" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     </switch>
                                 </subviews>
-                                <color key="tintColor" red="1" green="0.71513205769999999" blue="0.7131660581" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="tintColor" red="0.79361979166666663" green="0.65199795729172649" blue="0.59347105026245117" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </stackView>
                         </subviews>
                         <color key="backgroundColor" red="0.95417746110000001" green="0.89754256291111112" blue="0.80953024321666667" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
