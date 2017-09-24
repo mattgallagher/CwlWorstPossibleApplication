@@ -16,7 +16,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C9BF87331F596365004F55D3 /* CwlWorstPossibleApplication.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CwlWorstPossibleApplication.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9BF87331F596365004F55D3 /* Mines.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mines.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9BF87361F596365004F55D3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C9BF87381F596365004F55D3 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		C9BF873D1F596365004F55D3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -48,7 +48,7 @@
 		C9BF87341F596365004F55D3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C9BF87331F596365004F55D3 /* CwlWorstPossibleApplication.app */,
+				C9BF87331F596365004F55D3 /* Mines.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,9 +70,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		C9BF87321F596365004F55D3 /* CwlWorstPossibleApplication */ = {
+		C9BF87321F596365004F55D3 /* Mines */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C9BF87451F596365004F55D3 /* Build configuration list for PBXNativeTarget "CwlWorstPossibleApplication" */;
+			buildConfigurationList = C9BF87451F596365004F55D3 /* Build configuration list for PBXNativeTarget "Mines" */;
 			buildPhases = (
 				C9BF872F1F596365004F55D3 /* Sources */,
 				C9BF87301F596365004F55D3 /* Frameworks */,
@@ -82,9 +82,9 @@
 			);
 			dependencies = (
 			);
-			name = CwlWorstPossibleApplication;
+			name = Mines;
 			productName = CwlWorstPossibleApplication;
-			productReference = C9BF87331F596365004F55D3 /* CwlWorstPossibleApplication.app */;
+			productReference = C9BF87331F596365004F55D3 /* Mines.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -116,7 +116,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				C9BF87321F596365004F55D3 /* CwlWorstPossibleApplication */,
+				C9BF87321F596365004F55D3 /* Mines */,
 			);
 		};
 /* End PBXProject section */
@@ -314,7 +314,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C9BF87451F596365004F55D3 /* Build configuration list for PBXNativeTarget "CwlWorstPossibleApplication" */ = {
+		C9BF87451F596365004F55D3 /* Build configuration list for PBXNativeTarget "Mines" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C9BF87461F596365004F55D3 /* Debug */,
