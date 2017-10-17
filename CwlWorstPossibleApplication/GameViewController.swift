@@ -25,26 +25,8 @@ class GameViewController: UIViewController {
 	static let gameHeight: Int = 10
 	static let initialMineCount: Int = 15
 	
-	@IBOutlet var squaresToClear: UILabel?
-	@IBOutlet var flagMode: UISwitch?
-	@IBOutlet var newGameButton: UIButton?
-	
 	var squareViews: Array<SquareView> = []
 	var nonMineSquaresRemaining = 0
-	
-	func refreshSquaresToClear() {
-		if nonMineSquaresRemaining == -1 {
-			squaresToClear?.text = NSLocalizedString("Boom... you lose!", comment: "")
-		} else if nonMineSquaresRemaining == 0 {
-			squaresToClear?.text = NSLocalizedString("None... you win!", comment: "")
-		} else {
-			squaresToClear?.text = "\(nonMineSquaresRemaining)"
-		}
-	}
-	
-	@IBAction func startNewGame() {
-		loadGame(newSquareViews: newMineField(mineCount: GameViewController.initialMineCount), remaining: GameViewController.gameWidth * GameViewController.gameHeight - GameViewController.initialMineCount)
-	}
 	
 	func loadGame(newSquareViews: Array<SquareView>, remaining: Int) {
 		squareViews.forEach { $0.removeFromSuperview() }
@@ -116,12 +98,6 @@ class GameViewController: UIViewController {
 		}
 	}
 
-	override func viewDidLoad() {
-		super.viewDidLoad()
-		newGameButton?.layer.cornerRadius = 8
-		startNewGame()
-	}
-	
 	@objc func squareTapped(_ sender: Any?) {
 		guard let squareView = sender as? SquareView, nonMineSquaresRemaining > 0 else { return }
 		
@@ -143,6 +119,30 @@ class GameViewController: UIViewController {
 		
 		nonMineSquaresRemaining -= uncover(squareViews: squareViews, index: squareView.location)
 		refreshSquaresToClear()
+	}
+	
+	@IBOutlet var squaresToClear: UILabel?
+	@IBOutlet var flagMode: UISwitch?
+	@IBOutlet var newGameButton: UIButton?
+	
+	func refreshSquaresToClear() {
+		if nonMineSquaresRemaining == -1 {
+			squaresToClear?.text = NSLocalizedString("Boom... you lose!", comment: "")
+		} else if nonMineSquaresRemaining == 0 {
+			squaresToClear?.text = NSLocalizedString("None... you win!", comment: "")
+		} else {
+			squaresToClear?.text = "\(nonMineSquaresRemaining)"
+		}
+	}
+	
+	override func viewDidLoad() {
+		super.viewDidLoad()
+		newGameButton?.layer.cornerRadius = 8
+		startNewGame()
+	}
+	
+	@IBAction func startNewGame() {
+		loadGame(newSquareViews: newMineField(mineCount: GameViewController.initialMineCount), remaining: GameViewController.gameWidth * GameViewController.gameHeight - GameViewController.initialMineCount)
 	}
 	
 	override func viewDidLayoutSubviews() {
