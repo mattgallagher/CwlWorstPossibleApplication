@@ -30,7 +30,7 @@ class SquareView: UIButton {
 		case flagged = "flagged"
 	}
 
-	var covering: Covering = .covered { didSet { setNeedsDisplay() } }
+	var covering: Covering = .covered
 	var isMine: Bool = false
 	var adjacent: Int8 = 0
 	var location: Int

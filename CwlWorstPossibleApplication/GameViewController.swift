@@ -30,7 +30,9 @@ class GameViewController: UIViewController {
 	@IBOutlet var newGameButton: UIButton?
 	
 	var squares: Array<SquareView> = []
-	var nonMineSquaresRemaining = 0 { didSet {
+	var nonMineSquaresRemaining = 0
+	
+	func refreshSquaresToClear() {
 		if nonMineSquaresRemaining == -1 {
 			squaresToClear?.text = NSLocalizedString("Boom... you lose!", comment: "")
 		} else if nonMineSquaresRemaining == 0 {
@@ -38,7 +40,7 @@ class GameViewController: UIViewController {
 		} else {
 			squaresToClear?.text = "\(nonMineSquaresRemaining)"
 		}
-	} }
+	}
 	
 	@IBAction func startNewGame() {
 		loadGame(newSquares: newMineField(mineCount: GameViewController.initialMineCount), remaining: GameViewController.gameWidth * GameViewController.gameHeight - GameViewController.initialMineCount)
@@ -52,6 +54,7 @@ class GameViewController: UIViewController {
 			self.view.addSubview(s)
 			s.addTarget(self, action: #selector(squareTapped(_:)), for: .primaryActionTriggered)
 		}
+		refreshSquaresToClear()
 	}
 	
 	func newMineField(mineCount: Int) -> Array<SquareView> {
@@ -67,7 +70,7 @@ class GameViewController: UIViewController {
 				n = random.nextInt()
 			} while squares[n].isMine
 			squares[n].isMine = true
-			iterateAdjacent(squares: &squares, index: n) { (ss: inout Array<SquareView>, index: Int) in
+			iterateAdjacent(squares: squares, index: n) { (ss: Array<SquareView>, index: Int) in
 				if !ss[index].isMine {
 					ss[index].adjacent += 1
 				}
@@ -76,15 +79,16 @@ class GameViewController: UIViewController {
 		return squares
 	}
 	
-	func uncover(squares: inout Array<SquareView>, index: Int) -> Int {
+	func uncover(squares: Array<SquareView>, index: Int) -> Int {
 		guard squares[index].covering == .covered else { return 0 }
 		
 		squares[index].covering = .uncovered
+		squares[index].setNeedsDisplay()
 		
 		if squares[index].adjacent == 0 {
 			var cleared = 1
-			iterateAdjacent(squares: &squares, index: index) { (ss: inout Array<SquareView>, i: Int) in
-				cleared += uncover(squares: &ss, index: i)
+			iterateAdjacent(squares: squares, index: index) { (ss: Array<SquareView>, i: Int) in
+				cleared += uncover(squares: ss, index: i)
 			}
 			return cleared
 		} else {
@@ -92,23 +96,23 @@ class GameViewController: UIViewController {
 		}
 	}
 	
-	func iterateAdjacent(squares: inout Array<SquareView>, index n: Int, process: (inout Array<SquareView>, Int) -> ()) {
+	func iterateAdjacent(squares: Array<SquareView>, index n: Int, process: (Array<SquareView>, Int) -> ()) {
 		let isOnLeftEdge = n % GameViewController.gameWidth == 0
 		let isOnRightEdge = n % GameViewController.gameWidth == GameViewController.gameHeight - 1
 		
 		if n >= GameViewController.gameWidth {
-			if !isOnLeftEdge { process(&squares, n - GameViewController.gameWidth - 1) }
-			process(&squares, n - GameViewController.gameWidth)
-			if !isOnRightEdge { process(&squares, n - GameViewController.gameWidth + 1) }
+			if !isOnLeftEdge { process(squares, n - GameViewController.gameWidth - 1) }
+			process(squares, n - GameViewController.gameWidth)
+			if !isOnRightEdge { process(squares, n - GameViewController.gameWidth + 1) }
 		}
 		
-		if !isOnLeftEdge { process(&squares, n - 1) }
-		if !isOnRightEdge { process(&squares, n + 1) }
+		if !isOnLeftEdge { process(squares, n - 1) }
+		if !isOnRightEdge { process(squares, n + 1) }
 		
 		if n < GameViewController.gameWidth * (GameViewController.gameHeight - 1) {
-			if !isOnLeftEdge { process(&squares, n + GameViewController.gameWidth - 1) }
-			process(&squares, n + GameViewController.gameWidth)
-			if !isOnRightEdge { process(&squares, n + GameViewController.gameWidth + 1) }
+			if !isOnLeftEdge { process(squares, n + GameViewController.gameWidth - 1) }
+			process(squares, n + GameViewController.gameWidth)
+			if !isOnRightEdge { process(squares, n + GameViewController.gameWidth + 1) }
 		}
 	}
 
@@ -119,22 +123,26 @@ class GameViewController: UIViewController {
 	}
 	
 	@objc func squareTapped(_ sender: Any?) {
-		guard let s = sender as? SquareView, nonMineSquaresRemaining > 0 else { return }
+		guard let squareView = sender as? SquareView, nonMineSquaresRemaining > 0 else { return }
 		
-		if flagMode?.isOn == true, s.covering != .uncovered {
-			s.covering = s.covering == .covered ? .flagged : .covered
+		if flagMode?.isOn == true, squareView.covering != .uncovered {
+			squareView.covering = squareView.covering == .covered ? .flagged : .covered
+			squareView.setNeedsDisplay()
 			return
-		} else if s.covering == .flagged {
+		} else if squareView.covering == .flagged {
 			return
 		}
 		
-		if s.isMine {
-			s.covering = .uncovered
+		if squareView.isMine {
+			squareView.covering = .uncovered
 			nonMineSquaresRemaining = -1
+			refreshSquaresToClear()
+			squareView.setNeedsDisplay()
 			return
 		}
 		
-		nonMineSquaresRemaining -= uncover(squares: &squares, index: s.location)
+		nonMineSquaresRemaining -= uncover(squares: squares, index: squareView.location)
+		refreshSquaresToClear()
 	}
 	
 	override func viewDidLayoutSubviews() {
