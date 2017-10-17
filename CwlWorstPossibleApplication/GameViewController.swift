@@ -29,7 +29,7 @@ class GameViewController: UIViewController {
 	@IBOutlet var flagMode: UISwitch?
 	@IBOutlet var newGameButton: UIButton?
 	
-	var squares: Array<SquareView> = []
+	var squareViews: Array<SquareView> = []
 	var nonMineSquaresRemaining = 0
 	
 	func refreshSquaresToClear() {
@@ -43,14 +43,14 @@ class GameViewController: UIViewController {
 	}
 	
 	@IBAction func startNewGame() {
-		loadGame(newSquares: newMineField(mineCount: GameViewController.initialMineCount), remaining: GameViewController.gameWidth * GameViewController.gameHeight - GameViewController.initialMineCount)
+		loadGame(newSquareViews: newMineField(mineCount: GameViewController.initialMineCount), remaining: GameViewController.gameWidth * GameViewController.gameHeight - GameViewController.initialMineCount)
 	}
 	
-	func loadGame(newSquares: Array<SquareView>, remaining: Int) {
-		squares.forEach { $0.removeFromSuperview() }
-		squares = newSquares
+	func loadGame(newSquareViews: Array<SquareView>, remaining: Int) {
+		squareViews.forEach { $0.removeFromSuperview() }
+		squareViews = newSquareViews
 		nonMineSquaresRemaining = remaining
-		for s in squares {
+		for s in squareViews {
 			self.view.addSubview(s)
 			s.addTarget(self, action: #selector(squareTapped(_:)), for: .primaryActionTriggered)
 		}
@@ -70,7 +70,7 @@ class GameViewController: UIViewController {
 				n = random.nextInt()
 			} while squares[n].isMine
 			squares[n].isMine = true
-			iterateAdjacent(squares: squares, index: n) { (ss: Array<SquareView>, index: Int) in
+			iterateAdjacent(squareViews: squares, index: n) { (ss: Array<SquareView>, index: Int) in
 				if !ss[index].isMine {
 					ss[index].adjacent += 1
 				}
@@ -79,16 +79,16 @@ class GameViewController: UIViewController {
 		return squares
 	}
 	
-	func uncover(squares: Array<SquareView>, index: Int) -> Int {
-		guard squares[index].covering == .covered else { return 0 }
+	func uncover(squareViews: Array<SquareView>, index: Int) -> Int {
+		guard squareViews[index].covering == .covered else { return 0 }
 		
-		squares[index].covering = .uncovered
-		squares[index].setNeedsDisplay()
+		squareViews[index].covering = .uncovered
+		squareViews[index].setNeedsDisplay()
 		
-		if squares[index].adjacent == 0 {
+		if squareViews[index].adjacent == 0 {
 			var cleared = 1
-			iterateAdjacent(squares: squares, index: index) { (ss: Array<SquareView>, i: Int) in
-				cleared += uncover(squares: ss, index: i)
+			iterateAdjacent(squareViews: squareViews, index: index) { (ss: Array<SquareView>, i: Int) in
+				cleared += uncover(squareViews: ss, index: i)
 			}
 			return cleared
 		} else {
@@ -96,23 +96,23 @@ class GameViewController: UIViewController {
 		}
 	}
 	
-	func iterateAdjacent(squares: Array<SquareView>, index n: Int, process: (Array<SquareView>, Int) -> ()) {
+	func iterateAdjacent(squareViews: Array<SquareView>, index n: Int, process: (Array<SquareView>, Int) -> ()) {
 		let isOnLeftEdge = n % GameViewController.gameWidth == 0
 		let isOnRightEdge = n % GameViewController.gameWidth == GameViewController.gameHeight - 1
 		
 		if n >= GameViewController.gameWidth {
-			if !isOnLeftEdge { process(squares, n - GameViewController.gameWidth - 1) }
-			process(squares, n - GameViewController.gameWidth)
-			if !isOnRightEdge { process(squares, n - GameViewController.gameWidth + 1) }
+			if !isOnLeftEdge { process(squareViews, n - GameViewController.gameWidth - 1) }
+			process(squareViews, n - GameViewController.gameWidth)
+			if !isOnRightEdge { process(squareViews, n - GameViewController.gameWidth + 1) }
 		}
 		
-		if !isOnLeftEdge { process(squares, n - 1) }
-		if !isOnRightEdge { process(squares, n + 1) }
+		if !isOnLeftEdge { process(squareViews, n - 1) }
+		if !isOnRightEdge { process(squareViews, n + 1) }
 		
 		if n < GameViewController.gameWidth * (GameViewController.gameHeight - 1) {
-			if !isOnLeftEdge { process(squares, n + GameViewController.gameWidth - 1) }
-			process(squares, n + GameViewController.gameWidth)
-			if !isOnRightEdge { process(squares, n + GameViewController.gameWidth + 1) }
+			if !isOnLeftEdge { process(squareViews, n + GameViewController.gameWidth - 1) }
+			process(squareViews, n + GameViewController.gameWidth)
+			if !isOnRightEdge { process(squareViews, n + GameViewController.gameWidth + 1) }
 		}
 	}
 
@@ -141,7 +141,7 @@ class GameViewController: UIViewController {
 			return
 		}
 		
-		nonMineSquaresRemaining -= uncover(squares: squares, index: squareView.location)
+		nonMineSquaresRemaining -= uncover(squareViews: squareViews, index: squareView.location)
 		refreshSquaresToClear()
 	}
 	
@@ -152,7 +152,7 @@ class GameViewController: UIViewController {
 		let usedHeight = CGFloat(SquareView.squareSize + 2) * CGFloat(GameViewController.gameHeight)
 		for y in 0..<GameViewController.gameHeight {
 			for x in 0..<GameViewController.gameWidth {
-				let s = squares[x + y * GameViewController.gameWidth]
+				let s = squareViews[x + y * GameViewController.gameWidth]
 				s.frame.origin = CGPoint(x: 0.5 * (availableWidth - usedWidth) + CGFloat(x) * CGFloat(SquareView.squareSize + 2) + 1, y: 0.5 * (availableHeight - usedHeight) + CGFloat(y) * CGFloat(SquareView.squareSize + 2) + 1)
 			}
 		}
@@ -166,8 +166,8 @@ class GameViewController: UIViewController {
 		
 		if let squaresArray = coder.decodeObject(forKey: String.squaresKey) as? Array<Dictionary<String, Any>>, coder.containsValue(forKey: String.remainingKey) {
 			do {
-				let newSquares = try squaresArray.map { try SquareView(fromDictionary: $0) }
-				loadGame(newSquares: newSquares, remaining: coder.decodeInteger(forKey: String.remainingKey))
+				let newSquareViews = try squaresArray.map { try SquareView(fromDictionary: $0) }
+				loadGame(newSquareViews: newSquareViews, remaining: coder.decodeInteger(forKey: String.remainingKey))
 			} catch {
 				startNewGame()
 			}
@@ -176,7 +176,7 @@ class GameViewController: UIViewController {
 	
 	override func encodeRestorableState(with coder: NSCoder) {
 		super.encodeRestorableState(with: coder)
-		coder.encode(squares.map { $0.toDictionary() } as Array<Dictionary<String, Any>>, forKey: String.squaresKey)
+		coder.encode(squareViews.map { $0.toDictionary() } as Array<Dictionary<String, Any>>, forKey: String.squaresKey)
 		coder.encode(nonMineSquaresRemaining as Int, forKey: String.remainingKey)
 		coder.encode((flagMode?.isOn == true) as Bool, forKey: String.flagModeKey)
 	}
