@@ -23,6 +23,12 @@ class SquareView: UIButton {
 	static let font = UIFont.systemFont(ofSize: 18)
 	static let squareSize: CGFloat = 30
 	static let textPadding: CGFloat = 2
+	static let paragraphStyle: NSParagraphStyle = {
+		let alignCenter = NSMutableParagraphStyle()
+		alignCenter.alignment = .center
+		alignCenter.minimumLineHeight = SquareView.squareSize - 2 * SquareView.textPadding
+		return alignCenter
+	}()
 	
 	enum Covering: String {
 		case uncovered = "uncovered"
@@ -56,29 +62,26 @@ class SquareView: UIButton {
 	
 	override func draw(_ rect: CGRect) {
 		let path = UIBezierPath(rect: rect)
-		if covering == .uncovered {
-			UIColor(red: 0.8, green: 0.68, blue: 0.6, alpha: 1).set()
-		} else {
+		if covering != .uncovered {
 			UIColor(red: 0.472, green: 0.333, blue: 0.277, alpha: 1).set()
+		} else {
+			UIColor(red: 0.8, green: 0.68, blue: 0.6, alpha: 1).set()
 		}
 		path.fill()
 		
-		if covering != .covered {
-			let alignCenter = NSMutableParagraphStyle()
-			alignCenter.alignment = .center
-			alignCenter.minimumLineHeight = SquareView.squareSize - 2 * SquareView.textPadding
-			let string: String
-			if covering == .flagged {
-				string = "⚑"
-			} else if isMine {
-				string = "💣"
-			} else if adjacent != 0 {
-				string = "\(adjacent)"
-			} else {
-				string = ""
-			}
-			NSAttributedString(string: string, attributes: [.paragraphStyle: alignCenter, .font: SquareView.font]).draw(in: rect)
+		let string: String
+		if covering == .covered {
+			return
+		} else if covering == .flagged {
+			string = "⚑"
+		} else if isMine {
+			string = "💣"
+		} else if adjacent != 0 {
+			string = "\(adjacent)"
+		} else {
+			return
 		}
+		NSAttributedString(string: string, attributes: [.paragraphStyle: SquareView.paragraphStyle, .font: SquareView.font]).draw(in: rect)
 	}
 	
 	func toDictionary() -> Dictionary<String, Any> {

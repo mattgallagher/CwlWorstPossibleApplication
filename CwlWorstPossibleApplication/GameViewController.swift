@@ -150,11 +150,15 @@ class GameViewController: UIViewController {
 		let usedWidth = CGFloat(SquareView.squareSize + 2) * CGFloat(GameViewController.gameWidth)
 		let availableHeight = self.view.frame.size.height
 		let usedHeight = CGFloat(SquareView.squareSize + 2) * CGFloat(GameViewController.gameHeight)
-		for y in 0..<GameViewController.gameHeight {
-			for x in 0..<GameViewController.gameWidth {
-				let s = squareViews[x + y * GameViewController.gameWidth]
-				s.frame.origin = CGPoint(x: 0.5 * (availableWidth - usedWidth) + CGFloat(x) * CGFloat(SquareView.squareSize + 2) + 1, y: 0.5 * (availableHeight - usedHeight) + CGFloat(y) * CGFloat(SquareView.squareSize + 2) + 1)
-			}
+		
+		for sv in squareViews {
+			let x = sv.location % GameViewController.gameWidth
+			let y = sv.location / GameViewController.gameWidth
+			
+			let size = CGFloat(SquareView.squareSize + 2)
+			let xCoord = 0.5 * (availableWidth - usedWidth) + CGFloat(x) * size + 1
+			let yCoord = 0.5 * (availableHeight - usedHeight) + CGFloat(y) * size + 1
+			sv.frame.origin = CGPoint(x: xCoord, y: yCoord)
 		}
 	}
 	
