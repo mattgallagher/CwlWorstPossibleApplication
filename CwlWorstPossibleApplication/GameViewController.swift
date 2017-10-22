@@ -35,7 +35,7 @@ class GameViewController: UIViewController {
 			NotificationCenter.default.removeObserver(self, name: Game.changed, object: old)
 		}
 		NotificationCenter.default.addObserver(self, selector: #selector(gameChanged(_:)), name: Game.changed, object: newGame)
-		NotificationCenter.default.post(name: Game.changed, object: newGame)
+		gameChanged(Notification(name: Game.changed))
 	}
 	
 	@objc func gameChanged(_ notification: Notification) {
